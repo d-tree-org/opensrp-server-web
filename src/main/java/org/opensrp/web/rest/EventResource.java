@@ -110,13 +110,20 @@ public class EventResource extends RestResource<Event> {
 			String serverVersion = getStringFilter(BaseEntity.SERVER_VERSIOIN, request);
 			String team = getStringFilter(TEAM, request);
 			String teamId = getStringFilter(TEAM_ID, request);
+			String eventType = getStringFilter("eventType", request);
 			Integer limit = getIntegerFilter("limit", request);
-			
+
+			String role = getStringFilter("role", request);
+
+			if (role != null) {
+				eventType = "Family Registration"; //During implementation this could probably be referral assuming, for all clients with referral the eventType=referral
+			}
+
 			if (team != null || providerId != null || locationId != null || baseEntityId != null || teamId != null) {
-				
-				return new ResponseEntity<>(
-				        gson.toJson(sync(providerId, locationId, baseEntityId, serverVersion, team, teamId, limit)),
-				        RestUtils.getJSONUTF8Headers(), HttpStatus.OK);
+
+				return new ResponseEntity<>(gson.toJson(sync(providerId, locationId, baseEntityId, serverVersion, team, teamId, limit, eventType)),
+						RestUtils.getJSONUTF8Headers(), HttpStatus.OK);
+
 			} else {
 				response.put("msg", "specify atleast one filter");
 				return new ResponseEntity<>(new Gson().toJson(response), BAD_REQUEST);
@@ -150,9 +157,12 @@ public class EventResource extends RestResource<Event> {
 			        || syncParam.getBaseEntityId() != null || syncParam.getTeamId() != null) {
 				
 				return new ResponseEntity<>(
-				        gson.toJson(sync(syncParam.getProviderId(), syncParam.getLocationId(), syncParam.getBaseEntityId(),
-				            syncParam.getServerVersion(), syncParam.getTeam(), syncParam.getTeamId(), syncParam.getLimit())),
-				        RestUtils.getJSONUTF8Headers(), HttpStatus.OK);
+
+						gson.toJson(sync(syncParam.getProviderId(), syncParam.getLocationId(),
+								syncParam.getBaseEntityId(), syncParam.getServerVersion(), syncParam.getTeam(),
+								syncParam.getTeamId(), syncParam.getLimit(), syncParam.getEventType())),
+						RestUtils.getJSONUTF8Headers(), HttpStatus.OK);
+
 			} else {
 				response.put("msg", "specify atleast one filter");
 				return new ResponseEntity<>(new Gson().toJson(response), BAD_REQUEST);
@@ -168,7 +178,8 @@ public class EventResource extends RestResource<Event> {
 	}
 	
 	private Map<String, Object> sync(String providerId, String locationId, String baseEntityId, String serverVersion,
-	        String team, String teamId, Integer limit) {
+			String team, String teamId, Integer limit, String eventType) {
+
 		Long lastSyncedServerVersion = null;
 		if (serverVersion != null) {
 			lastSyncedServerVersion = Long.valueOf(serverVersion) + 1;
@@ -181,7 +192,9 @@ public class EventResource extends RestResource<Event> {
 		eventSearchBean.setLocationId(locationId);
 		eventSearchBean.setBaseEntityId(baseEntityId);
 		eventSearchBean.setServerVersion(lastSyncedServerVersion);
-		
+
+		eventSearchBean.setEventType(eventType);
+
 		return getEventsAndClients(eventSearchBean, limit == null || limit.intValue() == 0 ? 25 : limit);
 		
 	}
