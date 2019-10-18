@@ -20,6 +20,7 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.opensrp.api.domain.Location;
 import org.opensrp.api.domain.Time;
 import org.opensrp.api.domain.User;
 import org.opensrp.api.util.LocationTree;
@@ -27,11 +28,8 @@ import org.opensrp.common.domain.UserDetail;
 import org.opensrp.common.util.OpenMRSCrossVariables;
 import org.opensrp.connector.openmrs.service.OpenmrsLocationService;
 import org.opensrp.connector.openmrs.service.OpenmrsUserService;
-import org.opensrp.domain.AssignedLocations;
+import org.opensrp.domain.*;
 import org.opensrp.domain.LocationProperty.PropertyStatus;
-import org.opensrp.domain.Organization;
-import org.opensrp.domain.PhysicalLocation;
-import org.opensrp.domain.Practitioner;
 import org.opensrp.service.OrganizationService;
 import org.opensrp.service.PhysicalLocationService;
 import org.opensrp.service.PractitionerService;
@@ -206,6 +204,17 @@ public class UserController {
 
 			}
 		}
+		if (u.getRoles() != null && u.hasRole("Addo Dispenser")) {
+			Map<String, Object> addoMap = new HashMap<>();
+			addoMap.put("user", u);
+			JSONArray location = tm.getJSONArray(OpenMRSCrossVariables.LOCATIONS_JSON_KEY.makeVariable(OPENMRS_VERSION));
+			Location addoUserVillage = openmrsLocationService.getParent(location.getJSONObject(0));
+			addoMap.put("village", addoUserVillage);
+			addoMap.put("nearestHF", getNearestHF(location));
+			Time t = getServerTime();
+			addoMap.put("time", t);
+			return new ResponseEntity<>(new Gson().toJson(addoMap), RestUtils.getJSONUTF8Headers(), OK);
+		}
 		LocationTree l = openmrsLocationService.getLocationTreeOf(lid.split(";;"));
 		Map<String, Object> map = new HashMap<>();
 		map.put("user", u);
@@ -338,6 +347,25 @@ public class UserController {
 
 	public void setOpensrpAuthenticationProvider(DrishtiAuthenticationProvider opensrpAuthenticationProvider) {
 		this.opensrpAuthenticationProvider = opensrpAuthenticationProvider;
+	}
+
+	private Location getNearestHF(JSONArray addoShoplocation) throws JSONException {
+		String nearestHFUUID = "";
+		try {
+			JSONObject village = addoShoplocation.getJSONObject(0).getJSONObject("parentLocation");
+			JSONArray locationsInVillage = village.getJSONArray("childLocations");
+			for(int i=0; i <= locationsInVillage.length(); i++ ){
+				if(!(locationsInVillage.getJSONObject(i).get("uuid").toString().equalsIgnoreCase(addoShoplocation.getJSONObject(0).get("uuid").toString()))) {
+					nearestHFUUID = locationsInVillage.getJSONObject(i).getString("uuid").toString();
+				}
+			}
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		Location nearestHFLocation = openmrsLocationService.getLocation(nearestHFUUID);
+
+		return nearestHFLocation;
 	}
 
 }
