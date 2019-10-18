@@ -14,6 +14,7 @@ public class SyncParam {
 	private String team;
 	private String teamId;
 	private Integer limit;
+	private String eventType;
 
 	public String getProviderId() {
 		return providerId;
@@ -71,4 +72,9 @@ public class SyncParam {
 		this.limit = limit;
 	}
 
+    public String getEventType() { return eventType; }
+
+	public void setEventType(String eventType) {
+		this.eventType = eventType;
+	}
 }
