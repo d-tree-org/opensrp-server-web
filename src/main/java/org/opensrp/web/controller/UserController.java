@@ -207,10 +207,20 @@ public class UserController {
 		if (u.getRoles() != null && u.hasRole("Addo Dispenser")) {
 			Map<String, Object> addoMap = new HashMap<>();
 			addoMap.put("user", u);
+			try {
+				Map<String, Object> addoTeamMap = new Gson().fromJson(tm.toString(), new TypeToken<HashMap<String, Object>>(){
+
+				}.getType());
+				addoMap.put("team", addoTeamMap);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			JSONArray location = tm.getJSONArray(OpenMRSCrossVariables.LOCATIONS_JSON_KEY.makeVariable(OPENMRS_VERSION));
 			Location addoUserVillage = openmrsLocationService.getParent(location.getJSONObject(0));
 			addoMap.put("village", addoUserVillage);
 			addoMap.put("nearestHF", getNearestHF(location));
+			LocationTree l = openmrsLocationService.getLocationTreeOf(addoUserVillage.getLocationId());
+			addoMap.put("locations", l);
 			Time t = getServerTime();
 			addoMap.put("time", t);
 			return new ResponseEntity<>(new Gson().toJson(addoMap), RestUtils.getJSONUTF8Headers(), OK);
@@ -349,12 +359,18 @@ public class UserController {
 		this.opensrpAuthenticationProvider = opensrpAuthenticationProvider;
 	}
 
+	/**
+	 * Get the nearest health facility location within the village an ADDO user operate
+	 * @param addoShoplocation
+	 * @return
+	 * @throws JSONException
+	 */
 	private Location getNearestHF(JSONArray addoShoplocation) throws JSONException {
 		String nearestHFUUID = "";
 		try {
 			JSONObject village = addoShoplocation.getJSONObject(0).getJSONObject("parentLocation");
 			JSONArray locationsInVillage = village.getJSONArray("childLocations");
-			for(int i=0; i <= locationsInVillage.length(); i++ ){
+			for(int i=0; i < locationsInVillage.length(); i++ ){
 				if(!(locationsInVillage.getJSONObject(i).get("uuid").toString().equalsIgnoreCase(addoShoplocation.getJSONObject(0).get("uuid").toString()))) {
 					nearestHFUUID = locationsInVillage.getJSONObject(i).getString("uuid").toString();
 				}
