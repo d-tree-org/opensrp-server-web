@@ -215,6 +215,7 @@ public class UserController {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
 			JSONArray location = tm.getJSONArray(OpenMRSCrossVariables.LOCATIONS_JSON_KEY.makeVariable(OPENMRS_VERSION));
 			Location addoUserVillage = openmrsLocationService.getParent(location.getJSONObject(0));
 			addoMap.put("village", addoUserVillage);
@@ -370,7 +371,7 @@ public class UserController {
 		try {
 			JSONObject village = addoShoplocation.getJSONObject(0).getJSONObject("parentLocation");
 			JSONArray locationsInVillage = village.getJSONArray("childLocations");
-			for(int i=0; i < locationsInVillage.length(); i++ ){
+			for(int i=0; i <= locationsInVillage.length(); i++ ){
 				if(!(locationsInVillage.getJSONObject(i).get("uuid").toString().equalsIgnoreCase(addoShoplocation.getJSONObject(0).get("uuid").toString()))) {
 					nearestHFUUID = locationsInVillage.getJSONObject(i).getString("uuid").toString();
 				}

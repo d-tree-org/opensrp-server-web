@@ -112,7 +112,6 @@ public class EventResource extends RestResource<Event> {
 			String teamId = getStringFilter(TEAM_ID, request);
 			String eventType = getStringFilter("eventType", request);
 			Integer limit = getIntegerFilter("limit", request);
-
 			String role = getStringFilter("role", request);
 
 			if (role != null) {
@@ -192,6 +191,7 @@ public class EventResource extends RestResource<Event> {
 		eventSearchBean.setLocationId(locationId);
 		eventSearchBean.setBaseEntityId(baseEntityId);
 		eventSearchBean.setServerVersion(lastSyncedServerVersion);
+		eventSearchBean.setEventType(eventType);
 
 		eventSearchBean.setEventType(eventType);
 
