@@ -3,11 +3,11 @@ package org.opensrp.web.security;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
-import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 public class DrishtiAuthenticationProviderTest {
     @Mock
-    private ShaPasswordEncoder passwordEncoder;
+    private StandardPasswordEncoder passwordEncoder;
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
